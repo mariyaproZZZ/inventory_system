@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Мой склад</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 30px 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            background: white;
+            padding: 25px;
+            border: 1px solid #ddd;
+        }
+        h1 {
+            font-size: 24px;
+            color: #2c3e50;
+            margin: 0 0 5px 0;
+        }
+        hr {
+            border: none;
+            border-top: 2px solid #3498db;
+            margin: 15px 0 20px 0;
+        }
+        .stats {
+            background: #ecf0f1;
+            padding: 12px 15px;
+            margin: 20px 0;
+            border-left: 4px solid #3498db;
+        }
+        .stats b {
+            color: #2c3e50;
+        }
+        .stats span {
+            font-weight: bold;
+            color: #2980b9;
+        }
+        .add-form {
+            background: #fafafa;
+            padding: 15px;
+            margin: 20px 0;
+            border: 1px solid #e0e0e0;
+        }
+        .add-form input {
+            padding: 8px 10px;
+            margin-right: 8px;
+            border: 1px solid #ccc;
+            width: 180px;
+        }
+        .add-form button {
+            padding: 8px 25px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .add-form button:hover {
+            background: #229954;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px 8px;
+            text-align: left;
+        }
+        th {
+            background: #34495e;
+            color: white;
+            font-weight: normal;
+        }
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        tr:hover {
+            background: #f1f1f1;
+        }
+        .low-stock {
+            background-color: #fff9e6;
+        }
+        .update-form {
+            display: inline;
+        }
+        .update-form input {
+            width: 65px;
+            padding: 5px;
+            border: 1px solid #ccc;
+        }
+        .btn-update {
+            padding: 5px 12px;
+            background: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .btn-update:hover {
+            background: #2980b9;
+        }
+        .btn-delete {
+            padding: 5px 12px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            text-decoration: none;
+            margin-left: 5px;
+        }
+        .btn-delete:hover {
+            background: #c0392b;
+        }
+        .warning {
+            background: #fef9e7;
+            border: 1px solid #f1c40f;
+            padding: 12px;
+            margin: 20px 0;
+            color: #7d6608;
+        }
+        .critical {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .low {
+            color: #e67e22;
+        }
+        .status-green {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        footer {
+            margin-top: 30px;
+            padding-top: 15px;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 12px;
+            border-top: 1px solid #ecf0f1;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <h1>📦 Система учёта складских запасов</h1>
+    <hr>
+
+    <!-- Статистика -->
+    <div class="stats">
+        <b>Статистика:</b> Всего товаров: <span>{{ items|length }}</span> |
+        Товаров с низким остатком: <span>{{ low_stock|length }}</span> |
+        Общая стоимость: <span>{{ "%.2f"|format(total_value) }} руб.</span>
+    </div>
+
+    <!-- Форма добавления -->
+    <div class="add-form">
+        <b>➕ Добавить товар</b><br><br>
+        <form action="/add" method="POST">
+            <input type="text" name="name" placeholder="Название" required>
+            <input type="number" name="quantity" placeholder="Количество" required>
+            <input type="number" step="0.01" name="price" placeholder="Цена" required>
+            <button type="submit">Добавить</button>
+        </form>
+    </div>
+
+    <!-- Таблица -->
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Название</th>
+                <th>Количество</th>
+                <th>Цена (руб)</th>
+                <th>Итого (руб)</th>
+                <th>Статус</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr class="{% if item[2] < 10 %}low-stock{% endif %}">
+                <td>{{ item[0] }}</td>
+                <td>{{ item[1] }}</strong></td>
+                <td>
+                    {{ item[2] }}
+                    {% if item[2] < 5 %}
+                        <span class="critical">(критично!)</span>
+                    {% elif item[2] < 10 %}
+                        <span class="low">(мало)</span>
+                    {% endif %}
+                </td>
+                <td>{{ "%.2f"|format(item[3]) }}</td>
+                <td>{{ "%.2f"|format(item[2] * item[3]) }}</td>
+                <td>
+                    {% if item[2] < 5 %}
+                        <span class="critical">⚠️ срочно закупить</span>
+                    {% elif item[2] < 10 %}
+                        <span class="low"> пополнить</span>
+                    {% else %}
+                        <span class="status-green"> в порядке</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <form action="/update/{{ item[0] }}" method="POST" class="update-form">
+                        <input type="number" name="quantity" value="{{ item[2] }}">
+                        <input type="number" step="0.01" name="price" value="{{ item[3] }}">
+                        <button type="submit" class="btn-update">Обновить</button>
+                    </form>
+                    <a href="/delete/{{ item[0] }}" class="btn-delete" onclick="return confirm('Удалить товар?')">Удалить</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Предупреждение -->
+    {% if low_stock|length > 0 %}
+    <div class="warning">
+        ⚠️ <strong>Внимание!</strong> Заканчиваются:
+        {% for item in low_stock %}
+            {{ item[1] }} ({{ item[2] }} шт.){% if not loop.last %}, {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <footer>
+        Складская система | {{ now.year if now else 2026 }}
+    </footer>
+
+</div>
+</body>
+</html>
