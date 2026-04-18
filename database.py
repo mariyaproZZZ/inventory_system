@@ -4,7 +4,7 @@ import sqlite3
 conn = sqlite3.connect('inventory.db', check_same_thread=False)
 cursor = conn.cursor()
 
-# Создаём таблицу товаров
+
 cursor.execute('''
 CREATE TABLE IF NOT EXISTS items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -15,11 +15,11 @@ CREATE TABLE IF NOT EXISTS items (
 ''')
 conn.commit()
 
-# Проверяем, есть ли товары в таблице
+
 cursor.execute('SELECT COUNT(*) FROM items')
 count = cursor.fetchone()[0]
 
-# Если товаров нет — добавляем начальные
+
 if count == 0:
     demo_items = [
         ('Ноутбук Lenovo', 15, 45000),
@@ -35,7 +35,7 @@ if count == 0:
     conn.commit()
     print(f"Добавлено {len(demo_items)} товаров на склад")
 
-# Функции для работы со складом
+
 def get_all_items():
     cursor.execute('SELECT * FROM items ORDER BY name')
     return cursor.fetchall()
